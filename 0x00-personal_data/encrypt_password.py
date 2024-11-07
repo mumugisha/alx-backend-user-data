@@ -17,9 +17,9 @@ def hash_password(password: str) -> bytes:
     Returns:
         bytes: The hashed password.
     """
-    betas = password.encode()
-    hashed_psw = hashpw(betas, bcrypt.gensalt())
-    return hashed_psw
+    b = password.encode()
+    hashed = hashpw(betas, bcrypt.gensalt())
+    return hashed
 
 
 def is_valid(hashed_psw: bytes, password: str) -> bool:
