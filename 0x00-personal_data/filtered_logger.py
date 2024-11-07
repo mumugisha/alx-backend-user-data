@@ -8,6 +8,7 @@ from typing import List
 import re
 import os
 import mysql.connector
+from mysql.connector import Error
 
 PII_FIELDS = ('name', 'email', 'phone', 'ssn', 'password')
 
@@ -88,28 +89,43 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     user = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
     passwd = os.getenv('PERSONAL_DATA_DB_PASSWORD', '')
     host = os.getenv('PERSONAL_DATA_DB_HOST', 'localhost')
-    my_db = os.getenv('PERSONAL_DATA_DB_NAME')
+    db_name = os.getenv('PERSONAL_DATA_DB_NAME')
 
-    connect = mysql.connector.connect(user=user, password=passwd,
-                                      host=host, database=my_db)
-    return connect
+    if not db_name:
+        raise ValueError("The database name must be set in the environment.")
+
+    try:
+        connection = mysql.connector.connect(user=user, password=passwd,
+                                             host=host, database=db_name)
+        return connection
+    except Error as err:
+        logger = get_logger()
+        logger.error(f"Error connecting to the database: {err}")
+        raise
 
 
 def main():
     """
     Main function that fetches data from the database and logs it.
     """
-    db = get_db()
     logger = get_logger()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM users;")
-    fields = cursor.column_names
-    for row in cursor:
-        message = "".join(f"{k}={v}; " for k, v in zip(fields, row))
-        logger.info(message.strip())
-
-    cursor.close()
-    db.close()
+    db = None
+    cursor = None
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM users;")
+        fields = cursor.column_names
+        for row in cursor:
+            message = "".join(f"{k}={v}; " for k, v in zip(fields, row))
+            logger.info(message.strip())
+    except Error as err:
+        logger.error(f"Database error: {err}")
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if db is not None:
+            db.close()
 
 
 if __name__ == "__main__":
