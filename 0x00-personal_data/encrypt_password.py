@@ -3,7 +3,6 @@
 A module that provides functions to hash a password and validate it.
 """
 import bcrypt
-from bcrypt import hashpw
 
 
 def hash_password(password: str) -> bytes:
@@ -16,17 +15,17 @@ def hash_password(password: str) -> bytes:
     Returns:
         bytes: The hashed password.
     """
-    b = password.encode()
-    hashed = hashpw(b, bcrypt.gensalt())
-    return hashed
+    password_bytes = password.encode()
+    hashed_password = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    return hashed_password
 
 
-def is_valid(hashed_psw: bytes, password: str) -> bool:
+def is_valid(hashed_password: bytes, password: str) -> bool:
     """
     Validates a password against a hashed password.
 
     Args:
-        hashed_psw (bytes): The hashed password.
+        hashed_password (bytes): The hashed password.
         password (str): The plain password to validate.
 
     Returns:
