@@ -2,7 +2,6 @@
 """
 A module that provides functions to hash a password and validate it.
 """
-
 import bcrypt
 from bcrypt import hashpw
 
@@ -33,4 +32,4 @@ def is_valid(hashed_psw: bytes, password: str) -> bool:
     Returns:
         bool: True if the password is valid, False otherwise.
     """
-    return bcrypt.checkpw(password.encode(), hashed_psw)
+    return bcrypt.checkpw(password.encode(), hashed_password)
