@@ -102,7 +102,7 @@ def main():
     db = get_db()
     logger = get_logger()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM users;")
+    cursor.execute("SELECT COUNT(*) FROM users;")
     fields = cursor.column_names
     for row in cursor:
         message = "".join(f"{k}={v}; " for k, v in zip(fields, row))
