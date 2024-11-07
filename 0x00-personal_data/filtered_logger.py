@@ -104,7 +104,6 @@ def main():
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users;")
     fields = cursor.column_names
-
     for row in cursor:
         message = "".join(f"{k}={v}; " for k, v in zip(fields, row))
         logger.info(message.strip())
