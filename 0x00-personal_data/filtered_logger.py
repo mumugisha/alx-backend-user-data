@@ -89,14 +89,14 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     user = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
     passwd = os.getenv('PERSONAL_DATA_DB_PASSWORD', '')
     host = os.getenv('PERSONAL_DATA_DB_HOST', 'localhost')
-    db_name = os.getenv('PERSONAL_DATA_DB_NAME')
+    my_db = os.getenv('PERSONAL_DATA_DB_NAME')
 
-    if not db_name:
+    if not my_db:
         raise ValueError("The database name must be set in the environment.")
 
     try:
         connection = mysql.connector.connect(user=user, password=passwd,
-                                             host=host, database=db_name)
+                                             host=host, database=my_db)
         return connection
     except Error as err:
         logger = get_logger()
