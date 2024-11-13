@@ -5,7 +5,7 @@ Route module for the API
 from os import getenv
 from api.v1.views import app_views
 from flask import Flask, jsonify, abort, request
-from flask_cors import CORS
+from flask_cors import (CORS, cross_origin)
 import os
 
 app = Flask(__name__)
@@ -33,7 +33,7 @@ elif AUTH_TYPE == "session_db_auth":
 
 
 @app.before_request
-def before_request():
+def bef_req():
     """
     Filtering each request
     """
@@ -46,7 +46,7 @@ def before_request():
             "/api/v1/auth_session/login/"
         ]
         if auth.require_auth(request.path, exclude):
-            cookies = auth.session_cookies(request)
+            cookie = auth.session_cookie(request)
             if auth.authorization_header(request) is None and cookies is None:
                 abort(401, description="Unauthorized")
             if auth.current_user(request) is None:
