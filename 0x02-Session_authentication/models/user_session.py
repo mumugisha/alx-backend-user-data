@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Authentication of API."""
-
 from models.base import Base
 
 
 class UserSession(Base):
-    """Class representing a user session for API authentication."""
+    """Class representing a UserSession for API authentication."""
 
     def __init__(self, *args: list, **kwargs: dict):
         """
