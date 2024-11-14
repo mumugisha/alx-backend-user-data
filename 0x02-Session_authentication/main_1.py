@@ -5,7 +5,8 @@ from api.v1.auth.session_auth import SessionAuth
 
 sa = SessionAuth()
 
-print("{}: {}".format(type(sa.user_id_by_session_id), sa.user_id_by_session_id))
+print("{}: {}".format(type(sa.user_id_by_session_id),
+      sa.user_id_by_session_id))
 
 user_id = None
 session = sa.create_session(user_id)
