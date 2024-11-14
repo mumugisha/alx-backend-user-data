@@ -9,11 +9,11 @@ from .auth import Auth
 class SessionAuth(Auth):
     """Authorization protocol implementation."""
 
-    user_id_session_id = {}
+    user_id_by_session_id = {}
 
     def create_session(self, user_id: str = None) -> str:
         """
-        Function to create a session ID.
+        Creates a Session ID for a given user_id.
 
         Args:
             user_id (str): User ID.
@@ -23,9 +23,12 @@ class SessionAuth(Auth):
         """
         if user_id is None or not isinstance(user_id, str):
             return None
-        id = uuid4()
-        self.user_id_session_id[str(id)] = user_id
-        return str(id)
+        
+        session_id = str(uuid4())
+        
+        self.user_id_by_session_id[session_id] = user_id
+        
+        return session_id
 
     def user_id_for_session_id(self, session_id: str = None) -> str:
         """
@@ -39,13 +42,15 @@ class SessionAuth(Auth):
         """
         if session_id is None or not isinstance(session_id, str):
             return None
-        return self.user_id_session_id.get(session_id)
+        return self.user_id_by_session_id.get(session_id)
 
     def current_user(self, request=None):
         """
         Return user instance.
+
         Args:
             request: Request object.
+
         Returns:
             User instance if session exists, otherwise None.
         """
@@ -57,6 +62,12 @@ class SessionAuth(Auth):
     def destroy_session(self, request=None):
         """
         Delete user session.
+
+        Args:
+            request: Request object.
+
+        Returns:
+            bool: True if session was deleted, False otherwise.
         """
         if request is None:
             return False
@@ -66,5 +77,5 @@ class SessionAuth(Auth):
         user_id = self.user_id_for_session_id(session_cookie)
         if user_id is None:
             return False
-        del self.user_id_session_id[session_cookie]
+        del self.user_id_by_session_id[session_cookie]
         return True
