@@ -26,7 +26,7 @@ class SessionExpAuth(SessionAuth):
     def create_session(self, user_id=None):
         """
         Create a session ID.
-        
+
         Args:
             user_id (str): The ID of the user.
         """
@@ -43,10 +43,10 @@ class SessionExpAuth(SessionAuth):
     def user_id_for_session_id(self, session_id=None):
         """
         Returns user ID associated with a session ID.
-        
+
         Args:
             session_id (str): The session ID.
-        
+
         Returns:
             User ID or None if session ID is None or not a string.
         """
