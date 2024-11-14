@@ -2,11 +2,10 @@
 """Authentication of API."""
 
 import base64
-from .auth import Auth
 from uuid import uuid4
 from typing import TypeVar
 from models.user import User
-
+from .auth import Auth
 
 class SessionAuth(Auth):
     """Authorization protocol implementation."""
@@ -25,9 +24,9 @@ class SessionAuth(Auth):
         """
         if user_id is None or not isinstance(user_id, str):
             return None
-        session_id = str(uuid4())
-        self.user_id_session_id[session_id] = user_id
-        return session_id
+        id = uuid4()
+        self.user_id_session_id[str(id)] = user_id
+        return str(id)
 
     def user_id_for_session_id(self, session_id: str = None) -> str:
         """
@@ -46,31 +45,27 @@ class SessionAuth(Auth):
     def current_user(self, request=None):
         """
         Return user instance.
-
         Args:
             request: Request object.
-
         Returns:
             User instance if session exists, otherwise None.
         """
         session_cookie = self.session_cookie(request)
         user_id = self.user_id_for_session_id(session_cookie)
-        return User.get(user_id) if user_id else None
-
-    def destroy_session(self, request=None) -> bool:
+        user = User.get(user_id)
+        return user
+        
+    def destroy_session(self, request=None):
         """
         Delete user session.
-
-        Args:
-            request: Request object.
-
-        Returns:
-            bool: True if session was destroyed, False otherwise.
         """
         if request is None:
             return False
         session_cookie = self.session_cookie(request)
         if session_cookie is None:
             return False
-        self.user_id_session_id.pop(session_cookie, None)
+        user_id = self.user_id_for_session_id(session_id)
+        if user_id is None:
+           return False
+        del self.user_id_by_session_id[session_cookie]
         return True
