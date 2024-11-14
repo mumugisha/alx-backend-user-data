@@ -4,6 +4,7 @@
 import base64
 from .auth import Auth
 from typing import TypeVar
+
 from models.user import User
 
 
@@ -66,7 +67,7 @@ class BasicAuth(Auth):
             return None
         try:
             users = User.search({"email": user_email})
-            if not users:
+            if not users or users == []:
                 return None
             for user in users:
                 if user.is_valid_password(user_pwd):
@@ -79,14 +80,14 @@ class BasicAuth(Auth):
         """
         Return user instance based on request received.
         """
-        auth_header = self.authorization_header(request)
-        if auth_header is not None:
-            token = self.extract_base64_authorization_header(auth_header)
+        Auth_header = self.authorization_header(request)
+        if Auth_header is not None:
+            token = self.extract_base64_authorization_header(Auth_header)
             if token is not None:
                 decoded = self.decode_base64_authorization_header(token)
                 if decoded is not None:
-                    email, password = self.extract_user_credentials(decoded)
+                    email, pword = self.extract_user_credentials(decoded)
                     if email is not None:
                         return self.user_object_from_credentials(email,
-                                                                 password)
-        return None
+                                                                 pword)
+        return
