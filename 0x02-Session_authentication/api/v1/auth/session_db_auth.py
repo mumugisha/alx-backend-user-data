@@ -4,6 +4,7 @@
 from .session_exp_auth import SessionExpAuth
 from models.user_session import UserSession
 
+
 class SessionDBAuth(SessionExpAuth):
     """Session-based authentication using a database-backed session."""
 
@@ -13,7 +14,7 @@ class SessionDBAuth(SessionExpAuth):
 
         Args:
             user_id (str): The ID of the user.
-        
+
         Returns:
             str: The session ID or None if the session could not be created.
         """
@@ -32,7 +33,7 @@ class SessionDBAuth(SessionExpAuth):
 
         Args:
             session_id (str): The session ID.
-        
+
         Returns:
             str: The user ID or None if the session ID is invalid.
         """
@@ -47,13 +48,13 @@ class SessionDBAuth(SessionExpAuth):
 
         Args:
             request: The request object containing the session cookie.
-        
+
         Returns:
             bool: True if the session was destroyed, False otherwise.
         """
         if request is None:
             return False
-        
+
         # Get the session_id from the cookie
         session_id = self.session_cookie(request)
         if not session_id:
