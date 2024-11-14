@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Authentication of API."""
 
-import base64
 from uuid import uuid4
-from typing import TypeVar
 from models.user import User
 from .auth import Auth
+
 
 class SessionAuth(Auth):
     """Authorization protocol implementation."""
@@ -54,7 +53,7 @@ class SessionAuth(Auth):
         user_id = self.user_id_for_session_id(session_cookie)
         user = User.get(user_id)
         return user
-        
+
     def destroy_session(self, request=None):
         """
         Delete user session.
@@ -64,8 +63,8 @@ class SessionAuth(Auth):
         session_cookie = self.session_cookie(request)
         if session_cookie is None:
             return False
-        user_id = self.user_id_for_session_id(session_id)
+        user_id = self.user_id_for_session_id(session_cookie)
         if user_id is None:
-           return False
-        del self.user_id_by_session_id[session_cookie]
+            return False
+        del self.user_id_session_id[session_cookie]
         return True
