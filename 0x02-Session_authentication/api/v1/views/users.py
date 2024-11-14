@@ -70,7 +70,8 @@ def create_user() -> str:
       - User object JSON represented
       - 400 if can't create the new User
     """
-    rj, error_msg = None, None
+    rj = None
+    error_msg = None
     try:
         rj = request.get_json()
     except Exception:
