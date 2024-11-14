@@ -39,10 +39,10 @@ def auth_session_login():
             # Import auth here to avoid circular dependency
             from api.v1.app import auth
             session_id = auth.create_session(user.id)
-            
+
             # Create response with user data
             response = jsonify(user.to_json())
-            
+
             # Set session cookie
             session_name = os.getenv('SESSION_NAME', 'SESSION_ID')
             response.set_cookie(session_name, session_id)
