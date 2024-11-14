@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ Authentication of API """
 
+import os
 from flask import request
 from typing import List, TypeVar
 
@@ -9,6 +10,7 @@ class Auth:
     """
     Class to manage API authentication
     """
+
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
         """
         Determines if authentication is required for a given path.
@@ -19,11 +21,11 @@ class Auth:
                                         require authentication.
 
         Returns:
-            bool: True if authentication is required, False otherwise.
+            bool: True if path is not in excluded_paths, False otherwise.
         """
         if path is None:
             return True
-        elif excluded_paths is None or excluded_paths == []:
+        elif not excluded_paths:
             return True
         elif path in excluded_paths:
             return False
@@ -31,9 +33,8 @@ class Auth:
             for i in excluded_paths:
                 if i.startswith(path) or path.startswith(i):
                     return False
-                if i[-1] == "*":
-                    if path.startswith(i[:-1]):
-                        return False
+                if i.endswith("*") and path.startswith(i[:-1]):
+                    return False
         return True
 
     def authorization_header(self, request=None) -> str:
@@ -41,14 +42,16 @@ class Auth:
         Returns the authorization header from the request.
 
         Args:
-            request: The Flask request object.
+            request (Request, optional): The request object.
 
         Returns:
-            str: The authorization header, or None if not present.
+            str: The value of the Authorization header if present, None otherwise.
         """
         if request is None:
             return None
         header = request.headers.get('Authorization')
+        if header is None:
+            return None
         return header
 
     def current_user(self, request=None) -> TypeVar('User'):
@@ -56,9 +59,24 @@ class Auth:
         Returns the user information from the request.
 
         Args:
-            request: The Flask request object.
+            request (Request, optional): The request object.
 
         Returns:
-            TypeVar('User'): The user, or None if not found.
+            User: The current user if available, None otherwise.
         """
         return None
+
+    def session_cookie(self, request=None):
+        """
+        Returns the session cookie from the user request.
+
+        Args:
+            request (Request, optional): The request object.
+
+        Returns:
+            str: The value of the session cookie if available, None otherwise.
+        """
+        if request is None:
+            return None
+        session_name = os.getenv('SESSION_NAME')
+        return request.cookies.get(session_name)
