@@ -1,5 +1,5 @@
-tion of class Auth
-"""
+#!/usr/bin/env python3
+""" Authentication of API """
 import os
 from flask import request
 from typing import (
