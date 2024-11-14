@@ -39,6 +39,8 @@ def bef_req():
     Filtering each request
     """
     if auth is None:
+        pass
+    else:
         setattr(request, "current_user", auth.current_user(request))
         excluded = [
             "/api/v1/status",
