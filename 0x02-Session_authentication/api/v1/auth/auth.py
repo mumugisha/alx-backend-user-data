@@ -2,7 +2,6 @@
 """ Authentication of API """
 
 import os
-from flask import request
 from typing import List, TypeVar
 
 
