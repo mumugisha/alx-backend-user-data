@@ -6,7 +6,7 @@ from api.v1.views import app_views
 
 
 @app_views.route('/unauthorized', methods=['GET'], strict_slashes=False)
-def unauthorized() -> str:
+def authorized() -> str:
     """ GET /api/v1/unauthorized
     Raises:
       - 401 error with a description
@@ -40,5 +40,5 @@ def stats() -> str:
     """
     from models.user import User
     stats = {}
-    stats['users'] = User.count()  # Add additional counts if needed
+    stats['users'] = User.count()
     return jsonify(stats)
