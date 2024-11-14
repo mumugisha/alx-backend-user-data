@@ -4,7 +4,7 @@ Handles all routes for Session authentication
 """
 
 import os
-from flask import jsonify, request, abort
+from flask import jsonify, request
 from api.v1.views import app_views
 from models.user import User
 
