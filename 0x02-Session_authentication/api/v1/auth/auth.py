@@ -45,7 +45,8 @@ class Auth:
             request (Request, optional): The request object.
 
         Returns:
-            str: The value of the Authorization header if present, None otherwise.
+            str: The value of the Authorization header if present,
+                 None otherwise.
         """
         if request is None:
             return None
