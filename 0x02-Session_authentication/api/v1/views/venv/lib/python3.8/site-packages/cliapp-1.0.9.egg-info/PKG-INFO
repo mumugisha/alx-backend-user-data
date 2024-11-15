@@ -1,0 +1,12 @@
+Metadata-Version: 1.1
+Name: cliapp
+Version: 1.0.9
+Summary: a python2 cliapp framework
+Home-page: https://github.com/zhchang/cliapp
+Author: chang
+Author-email: zhchang@gmail.com
+License: UNKNOWN
+Download-URL: https://github.com/zhchang/cliapp/tarball/1.0.9
+Description: UNKNOWN
+Keywords: python,cli,util
+Platform: UNKNOWN
