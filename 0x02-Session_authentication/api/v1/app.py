@@ -12,7 +12,7 @@ import os
 app = Flask(__name__)
 
 
-app.register_blueprint(app_views)
+app.register_blueprint(app_views, url_prefix="/api/v1")
 CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 auth = None
 AUTH_TYPE = os.getenv("AUTH_TYPE")
