@@ -39,19 +39,27 @@ def auth_session():
         return jsonify({"error": "wrong password"}), 401
 
 
-@app_views.route('/auth_session/logout', methods=['DELETE'],
-                 strict_slashes=False)
+@app_views.route('/auth_session/logout', methods=['DELETE'], strict_slashes=False)
 def handle_logout():
     """
-    Function to handle logout
+    Handles user logout and session destruction.
+    Returns:
+        - 200 if the session is successfully destroyed.
+        - 404 if the session does not exist.
     """
-    from api.v1.app import auth
+    session_name = getenv('SESSION_NAME', '_my_session_id')
+    session_id = request.cookies.get(session_name)
+
+    if not session_id:
+        print("No session ID found in cookies.")
+        abort(404)
+
+    # Debugging
+    print(f"Attempting to destroy session with ID: {session_id}")
+
     if auth.destroy_session(request):
+        print(f"Session {session_id} destroyed successfully.")
         return jsonify({}), 200
     else:
-        # Log or print details about the request and session
-        print(
-            f"Failed to destroy session for user: "
-            f"{request.cookies.get('_my_session_id')}"
-        )
+        print(f"Failed to destroy session {session_id}.")
         abort(404)
