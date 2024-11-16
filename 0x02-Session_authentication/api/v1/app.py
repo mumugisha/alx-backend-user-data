@@ -33,6 +33,7 @@ elif AUTH_TYPE == "session_db_auth":
     from api.v1.auth.session_db_auth import SessionDBAuth
     auth = SessionDBAuth()
 
+
 @app.before_request
 def bef_req():
     """
@@ -53,7 +54,8 @@ def bef_req():
         return
 
     # Check for either an Authorization header or a session cookie
-    if not auth.authorization_header(request) and not auth.session_cookie(request):
+    if not auth.authorization_header(request) and \
+            not auth.session_cookie(request):
         return abort(401, description="Unauthorized")
 
     # Check for a valid user
