@@ -8,12 +8,13 @@ from flask import Flask, jsonify, abort, request
 from flask_cors import CORS
 import os
 
-
 app = Flask(__name__)
 
-
+# Register blueprint for views
 app.register_blueprint(app_views, url_prefix="/api/v1")
 CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
+
+# Initialize authentication based on AUTH_TYPE
 auth = None
 AUTH_TYPE = os.getenv("AUTH_TYPE")
 if AUTH_TYPE == "auth":
@@ -32,28 +33,35 @@ elif AUTH_TYPE == "session_db_auth":
     from api.v1.auth.session_db_auth import SessionDBAuth
     auth = SessionDBAuth()
 
-
 @app.before_request
 def bef_req():
     """
     Filtering each request
     """
+    allowed_paths = [
+        '/api/v1/status/',
+        '/api/v1/unauthorized/',
+        '/api/v1/forbidden/',
+        '/api/v1/auth_session/login/'
+    ]
+
     if auth is None:
-        pass
-    else:
-        setattr(request, "current_user", auth.current_user(request))
-        excluded = [
-            '/api/v1/status/',
-            '/api/v1/unauthorized/',
-            '/api/v1/forbidden/',
-            '/api/v1/auth_session/login/'
-        ]
-        if auth.require_auth(request.path, excluded):
-            cookie = auth.session_cookie(request)
-            if auth.authorization_header(request) is None and cookie is None:
-                abort(401, description="Unauthorized")
-            if auth.current_user(request) is None:
-                abort(403, description="Forbidden")
+        return
+
+    # Check if the request path is excluded from authentication
+    if not auth.require_auth(request.path, allowed_paths):
+        return
+
+    # Check for either an Authorization header or a session cookie
+    if not auth.authorization_header(request) and not auth.session_cookie(request):
+        return abort(401, description="Unauthorized")
+
+    # Check for a valid user
+    if auth.current_user(request) is None:
+        return abort(403, description="Forbidden")
+
+    # Attach the current user to the request object
+    request.current_user = auth.current_user(request)
 
 
 @app.errorhandler(404)
