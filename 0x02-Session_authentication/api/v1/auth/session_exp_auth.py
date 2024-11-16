@@ -1,37 +1,28 @@
 #!/usr/bin/env python3
-"""Authentication of API."""
+"""Authentication of API with session expiration."""
 
 import os
-from datetime import (
-    datetime,
-    timedelta
-)
-
+from datetime import datetime, timedelta
 from .session_auth import SessionAuth
 
 
 class SessionExpAuth(SessionAuth):
-    """Defined SessionExpAuth Class."""
+    """SessionExpAuth class with expiration date for sessions."""
 
     def __init__(self):
-        """
-        Initialize the SessionExpAuth Class that adds expiration date.
-        """
+        """Initialize the SessionExpAuth class with session duration."""
         try:
-            duration = int(os.getenv('SESSION_DURATION'))
-        except Exception:
-            duration = 0
-        self.session_duration = duration
+            session_duration = int(os.getenv('SESSION_DURATION', 0))
+        except ValueError:
+            session_duration = 0
+        self.session_duration = session_duration
 
     def create_session(self, user_id=None):
         """
-        Create a session ID.
-
-        Args:
-            user_id (str): The ID of the user.
+        Create a session ID with an associated creation time.
         """
         session_id = super().create_session(user_id)
-        if session_id is None:
+        if not session_id:
             return None
         session_dictionary = {
             "user_id": user_id,
@@ -42,25 +33,26 @@ class SessionExpAuth(SessionAuth):
 
     def user_id_for_session_id(self, session_id=None):
         """
-        Returns user ID associated with a session ID.
-
-        Args:
-            session_id (str): The session ID.
-
-        Returns:
-            User ID or None if session ID is None or not a string.
+        Return the user ID associated with a valid session ID.
         """
-        if session_id is None:
+        if not session_id:
             return None
-        user_details = self.user_id_by_session_id.get(session_id)
-        if user_details is None:
+        if session_id not in self.user_id_by_session_id.keys():
             return None
-        if "created_at" not in user_details.keys():
+
+        session_dictionary = self.user_id_by_session_id.get(session_id)
+        if not session_dictionary:
             return None
+
         if self.session_duration <= 0:
-            return user_details.get("user_id")
-        created_at = user_details.get("created_at")
-        allowed_window = created_at + timedelta(seconds=self.session_duration)
-        if allowed_window < datetime.now():
+            return session_dictionary.get("user_id")
+
+        created_at = session_dictionary.get("created_at")
+        if not created_at:
             return None
-        return user_details.get("user_id")
+
+        expired_time = created_at + timedelta(seconds=self.session_duration)
+        if datetime.now() > expired_time:
+            return None
+
+        return session_dictionary.get("user_id")
