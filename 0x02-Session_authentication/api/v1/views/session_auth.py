@@ -39,7 +39,8 @@ def auth_session():
         return jsonify({"error": "wrong password"}), 401
 
 
-@app_views.route('/auth_session/logout', methods=['DELETE'], strict_slashes=False)
+@app_views.route('/auth_session/logout', methods=['DELETE'],
+                 strict_slashes=False)
 def handle_logout():
     """
     Function to handle logout
@@ -49,5 +50,8 @@ def handle_logout():
         return jsonify({}), 200
     else:
         # Log or print details about the request and session
-        print(f"Failed to destroy session for user: {request.cookies.get('_my_session_id')}")
+        print(
+            f"Failed to destroy session for user: "
+            f"{request.cookies.get('_my_session_id')}"
+        )
         abort(404)
