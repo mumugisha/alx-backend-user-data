@@ -21,10 +21,12 @@ class SessionDBAuth(SessionExpAuth):
         session_id = super().create_session(user_id)
         if not session_id:
             return None
-
-        # Store the session in the UserSession model
-        user_session = UserSession(user_id=user_id, session_id=session_id)
-        user_session.save()  # Save the session to the database
+        kw = {
+            "user_id": user_id,
+            "session_id": session_id
+        }
+        user = UserSession(**kw)
+        user.save()
         return session_id
 
     def user_id_for_session_id(self, session_id=None):
@@ -37,9 +39,9 @@ class SessionDBAuth(SessionExpAuth):
         Returns:
             str: The user ID or None if the session ID is invalid.
         """
-        user_sessions = UserSession.search({"session_id": session_id})
-        if user_sessions:
-            return user_sessions[0].user_id
+        user_id = UserSession.search({"session_id": session_id})
+        if user_id:
+            return user_id
         return None
 
     def destroy_session(self, request=None):
@@ -54,15 +56,12 @@ class SessionDBAuth(SessionExpAuth):
         """
         if request is None:
             return False
-
-        # Get the session_id from the cookie
         session_id = self.session_cookie(request)
         if not session_id:
             return False
 
-        # Find the user session and remove it
-        user_sessions = UserSession.search({"session_id": session_id})
-        if user_sessions:
-            user_sessions[0].remove()
+        user_session = UserSession.search({"session_id": session_id})
+        if user_session:
+            user_session[0].remove()
             return True
         return False
