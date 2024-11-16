@@ -35,7 +35,8 @@ def auth_session():
             session_name = getenv('SESSION_NAME')
             resp.set_cookie(session_name, session_id)
             return resp
-    return jsonify({"error": "wrong password"}), 401
+    if not users:
+        return jsonify({"error": "wrong password"}), 401
 
 
 @app_views.route('/auth_session/logout', methods=['DELETE'],
