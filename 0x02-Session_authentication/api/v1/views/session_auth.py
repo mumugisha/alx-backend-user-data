@@ -39,7 +39,8 @@ def auth_session():
         return jsonify({"error": "wrong password"}), 401
 
 
-@app_views.route('/auth_session/logout', methods=['DELETE'], strict_slashes=False)
+@app_views.route('/auth_session/logout', methods=['DELETE'],
+                 strict_slashes=False)
 def handle_logout():
     """
     Handles user logout and session destruction.
@@ -57,6 +58,7 @@ def handle_logout():
     # Debugging
     print(f"Attempting to destroy session with ID: {session_id}")
 
+    from api.v1.app import auth
     if auth.destroy_session(request):
         print(f"Session {session_id} destroyed successfully.")
         return jsonify({}), 200
