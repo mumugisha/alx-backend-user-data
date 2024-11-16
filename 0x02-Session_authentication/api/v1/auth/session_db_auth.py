@@ -39,9 +39,16 @@ class SessionDBAuth(SessionExpAuth):
         Returns:
             str: The user ID or None if the session ID is invalid.
         """
-        user_id = UserSession.search({"session_id": session_id})
-        if user_id:
-            return user_id
+        if session_id is None:
+            return None
+
+        try:
+            user_sessions = UserSession.search({"session_id": session_id})
+            if user_sessions:
+                return user_sessions[0].user_id
+        except KeyError:
+            return None
+
         return None
 
     def destroy_session(self, request=None):
@@ -56,12 +63,17 @@ class SessionDBAuth(SessionExpAuth):
         """
         if request is None:
             return False
+
         session_id = self.session_cookie(request)
         if not session_id:
             return False
 
-        user_session = UserSession.search({"session_id": session_id})
-        if user_session:
-            user_session[0].remove()
-            return True
+        try:
+            user_sessions = UserSession.search({"session_id": session_id})
+            if user_sessions:
+                user_sessions[0].remove()
+                return True
+        except KeyError:
+            return False
+
         return False
