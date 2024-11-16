@@ -65,3 +65,4 @@ def handle_logout():
     else:
         print(f"Failed to destroy session {session_id}.")
         abort(404)
+    return jsonify({}), 200
