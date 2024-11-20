@@ -168,6 +168,7 @@ PASSWD = "b4l0u"
 NEW_PASSWD = "t4rt1fl3tt3"
 
 if __name__ == "__main__":
+
     register_user(EMAIL, PASSWD)
     log_in_wrong_password(EMAIL, NEW_PASSWD)
     profile_unlogged()
