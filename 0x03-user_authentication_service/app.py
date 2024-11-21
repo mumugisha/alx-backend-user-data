@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-""" Flask app
+"""
+Flask app
 """
 from auth import Auth
-from flask import Flask, abort, jsonify, request, redirect
+from flask import (Flask,
+                   abort,
+                   jsonify,
+                   request,
+                   redirect
+                   )
+
 
 app = Flask(__name__)
+
 AUTH = Auth()
 
 
@@ -16,7 +24,9 @@ def index() -> str:
 
 @app.route("/users", methods=['POST'], strict_slashes=False)
 def users() -> str:
-    """ Register new users """
+    """
+    Register new users
+    """
     email = request.form.get("email")
     password = request.form.get("password")
     try:
@@ -28,7 +38,9 @@ def users() -> str:
 
 @app.route("/sessions", methods=["POST"], strict_slashes=False)
 def login() -> str:
-    """ Log in a user if credentials are correct """
+    """
+    Log in a user if credentials are correct
+    """
     email = request.form.get("email")
     password = request.form.get("password")
 
@@ -43,7 +55,9 @@ def login() -> str:
 
 @app.route("/sessions", methods=['DELETE'], strict_slashes=False)
 def logout():
-    """ Log out a user and destroy their session """
+    """
+    Log out a user and destroy their session
+    """
     session_id = request.cookies.get("session_id")
     user = AUTH.get_user_from_session_id(session_id)
     if user is None or session_id is None:
@@ -54,7 +68,9 @@ def logout():
 
 @app.route("/profile", methods=['GET'], strict_slashes=False)
 def profile() -> str:
-    """ Return user's email based on session_id """
+    """
+    Return user's email based on session_id
+    """
     session_id = request.cookies.get("session_id")
     user = AUTH.get_user_from_session_id(session_id)
     if user:
@@ -64,7 +80,9 @@ def profile() -> str:
 
 @app.route("/reset_password", methods=['POST'], strict_slashes=False)
 def get_reset_password_token() -> str:
-    """ Generate a token for resetting user's password """
+    """
+    Generate a token for resetting user's password
+    """
     email = request.form.get("email")
     try:
         reset_token = AUTH.get_reset_password_token(email)
@@ -75,7 +93,9 @@ def get_reset_password_token() -> str:
 
 @app.route("/update_password", methods=['POST'], strict_slashes=False)
 def update_password() -> str:
-    """ Update user's password """
+    """
+    Update user's password
+    """
     email = request.form.get("email")
     reset_token = request.form.get("reset_token")
     new_password = request.form.get("new_password")
