@@ -6,8 +6,6 @@ Flask app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.exc import InvalidRequestError
 
 from user import Base, User
 
@@ -36,17 +34,17 @@ class DB:
         all_users = self._session.query(User)
         for key, value in kwargs.items():
             if key not in User.__dict__:
-                raise InvalidRequestError
+                raise ValueError("Invalid attribute")
             all_users = all_users.filter(getattr(User, key) == value)
         try:
             return all_users.one()
-        except NoResultFound:
-            raise NoResultFound
+        except Exception:
+            raise ValueError("No result found")
 
     def update_user(self, user_id: int, **kwargs) -> None:
         try:
             usr = self.find_user_by(id=user_id)
-        except NoResultFound:
+        except ValueError:
             raise ValueError("User not found")
         for key, value in kwargs.items():
             if hasattr(usr, key):
