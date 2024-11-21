@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Main file."""
+
 import requests
 
 
@@ -18,22 +19,11 @@ def register_user(email: str, password: str) -> None:
         "http://127.0.0.1:5000/users",
         data={"email": email, "password": password}
     )
-    print("Status Code:", response.status_code)
-    try:
-        print("Response Body:", response.json())
-    except ValueError:
-        print("Response Body: Invalid JSON or empty response")
-
     if response.status_code == 200:
-        assert response.json() == {
-            "email": email,
-            "message": "user created"
-        }
+        assert response.json() == {"email": email, "message": "user created"}
     else:
         assert response.status_code == 400
-        assert response.json() == {
-            "message": "email already registered"
-        }
+        assert response.json() == {"message": "email already registered"}
 
 
 def log_in_wrong_password(email: str, password: str) -> None:
@@ -81,10 +71,7 @@ def log_in(email: str, password: str) -> str:
         data={"email": email, "password": password}
     )
     assert response.status_code == 200
-    assert response.json() == {
-        "email": email,
-        "message": "logged in"
-    }
+    assert response.json() == {"email": email, "message": "logged in"}
     return response.cookies["session_id"]
 
 
