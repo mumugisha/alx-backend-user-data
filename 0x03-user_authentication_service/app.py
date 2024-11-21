@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """ Flask app
 """
+from flask import (
+    Flask, abort, jsonify, request, redirect
+)
+from typing import Optional, Tuple
 from auth import Auth
-from flask import Flask, abort, jsonify, request, redirect
 
-app = Flask(__name__)
 AUTH = Auth()
+app = Flask(__name__)
 
 
 @app.route("/", methods=['GET'], strict_slashes=False)
@@ -16,21 +19,31 @@ def index() -> str:
 
 @app.route("/users", methods=['POST'], strict_slashes=False)
 def users() -> str:
-    """ Register new users """
-    email = request.form.get("email")
-    password = request.form.get("password")
+    """
+    Register new users via POST request.
+    Expects email and password.
+
+    Returns:
+        JSON response with status.
+    """
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "").strip()
+    if not email or not password:
+        abort(400)
     try:
-        user = AUTH.register_user(email, password)
+        AUTH.register_user(email, password)
+        return jsonify({"email": email, "message": "user created"})
     except ValueError:
         return jsonify({"message": "email already registered"}), 400
-    return jsonify({"email": email, "message": "user created"}), 201
 
 
 @app.route("/sessions", methods=["POST"], strict_slashes=False)
-def login() -> str:
-    """ Log in a user if credentials are correct """
-    email = request.form.get("email")
-    password = request.form.get("password")
+def login() -> Optional[Tuple]:
+    """ Validate a user if credentials are correct """
+    email = request.form.get("email", "").strip()
+    password = request.form.get("password", "").strip()
+    if not email or not password:
+        abort(401)
 
     if not AUTH.valid_login(email, password):
         abort(401)
@@ -42,12 +55,16 @@ def login() -> str:
 
 
 @app.route("/sessions", methods=['DELETE'], strict_slashes=False)
-def logout():
+def logout() -> str:
     """ Log out a user and destroy their session """
     session_id = request.cookies.get("session_id")
-    user = AUTH.get_user_from_session_id(session_id)
-    if user is None or session_id is None:
+    if not session_id:
         abort(403)
+
+    user = AUTH.get_user_from_session_id(session_id)
+    if not user:
+        abort(403)
+
     AUTH.destroy_session(user.id)
     return redirect("/")
 
@@ -56,34 +73,44 @@ def logout():
 def profile() -> str:
     """ Return user's email based on session_id """
     session_id = request.cookies.get("session_id")
+    if not session_id:
+        abort(403)
+
     user = AUTH.get_user_from_session_id(session_id)
-    if user:
-        return jsonify({"email": user.email}), 200
-    abort(403)
+    if not user:
+        abort(403)
+
+    return jsonify({"email": user.email})
 
 
 @app.route("/reset_password", methods=['POST'], strict_slashes=False)
 def get_reset_password_token() -> str:
     """ Generate a token for resetting user's password """
-    email = request.form.get("email")
+    email = request.form.get("email", "").strip()
+    if not email:
+        abort(403)
+
     try:
         reset_token = AUTH.get_reset_password_token(email)
-    except ValueError:
+        return jsonify({"email": email, "reset_token": reset_token})
+    except Exception:
         abort(403)
-    return jsonify({"email": email, "reset_token": reset_token})
 
 
-@app.route("/update_password", methods=['POST'], strict_slashes=False)
+@app.route("/update_password", methods=['PUT'], strict_slashes=False)
 def update_password() -> str:
     """ Update user's password """
-    email = request.form.get("email")
-    reset_token = request.form.get("reset_token")
-    new_password = request.form.get("new_password")
+    email = request.form.get("email", "").strip()
+    reset_token = request.form.get("reset_token", "").strip()
+    new_password = request.form.get("new_password", "").strip()
+    if not email or not reset_token or not new_password:
+        abort(403)
+
     try:
         AUTH.update_password(reset_token, new_password)
-    except ValueError:
+        return jsonify({"email": email, "message": "password updated"})
+    except Exception:
         abort(403)
-    return jsonify({"email": email, "message": "password updated"})
 
 
 if __name__ == "__main__":
