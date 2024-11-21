@@ -15,14 +15,7 @@ Base = declarative_base()
 
 class User(Base):
     """
-    Define the User class for the 'users' table in the database.
-    
-    Attributes:
-        id (int): The primary key for the user.
-        name (str): The name of the user.
-        hashed_password (str): The user's hashed password.
-        session_id (str, optional): The session ID for the user, if any.
-        reset_token (str, optional): The reset token for the user, if any.
+    Define the User class for the 'users' table in the database.    
     """
     __tablename__ = 'users'
 
