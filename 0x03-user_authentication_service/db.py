@@ -3,9 +3,11 @@
 """
 from auth import Auth
 from flask import Flask, abort, jsonify, request, redirect
+from db import DB
 
 app = Flask(__name__)
 AUTH = Auth()
+DB_INSTANCE = DB()
 
 
 @app.route("/", methods=['GET'], strict_slashes=False)
@@ -20,9 +22,13 @@ def users() -> str:
     email = request.form.get("email")
     password = request.form.get("password")
     try:
-        user = AUTH.register_user(email, password)
+        # Use DB to add user
+        hashed_password = AUTH.hash_password(password)
+        user = DB_INSTANCE.add_user(email, hashed_password)
     except ValueError:
-        return jsonify({"message": "email already registered"}), 400
+        return jsonify(
+            {"message": "email already registered"}
+        ), 400
     return jsonify({"email": email, "message": "user created"}), 201
 
 
@@ -31,6 +37,12 @@ def login() -> str:
     """ Log in a user if credentials are correct """
     email = request.form.get("email")
     password = request.form.get("password")
+
+    # Check if user exists in DB
+    try:
+        user = DB_INSTANCE.find_user_by(email=email)
+    except NoResultFound:
+        abort(401)
 
     if not AUTH.valid_login(email, password):
         abort(401)
@@ -83,7 +95,9 @@ def update_password() -> str:
         AUTH.update_password(reset_token, new_password)
     except ValueError:
         abort(403)
-    return jsonify({"email": email, "message": "password updated"})
+    return jsonify(
+        {"email": email, "message": "password updated"}
+    )
 
 
 if __name__ == "__main__":
