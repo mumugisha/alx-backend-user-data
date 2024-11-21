@@ -13,6 +13,7 @@ class User(Base):
     """
     Define User class
     """
+
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
