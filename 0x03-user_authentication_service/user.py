@@ -2,7 +2,6 @@
 """
 Declaring SQLAlchemy named User model.
 """
-
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
         Column,
@@ -15,7 +14,7 @@ Base = declarative_base()
 
 class User(Base):
     """
-    Define the User class for the 'users' table in the database.    
+    Define the User class for users    
     """
     __tablename__ = 'users'
 
