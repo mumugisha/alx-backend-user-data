@@ -3,7 +3,6 @@
 DB module
 """
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.exc import NoResultFound
@@ -58,14 +57,17 @@ class DB:
 
         Raises:
             InvalidRequestError: If an attribute is invalid.
+            NoResultFound: If no user matches the attributes.
         """
-        many_users = self._session.query(User)
-        for k, v in kwargs.items():
-            if k not in User.__dict__:
-                raise InvalidRequestError
-            for user in many_users:
-                if getattr(user, k) == v:
-                    return user
+        for key in kwargs.keys():
+            if not hasattr(User, key):
+                raise InvalidRequestError(f"Invalid attribute: {key}")
+
+        user = self._session.query(User).filter_by(**kwargs).first()
+        if user:
+            return user
+
+        raise NoResultFound("No user found matching the given criteria.")
 
     def update_user(self, user_id: int, **kwargs) -> None:
         """
@@ -82,13 +84,35 @@ class DB:
             None
         """
         try:
-            user = self.find_user_by(id=user_id)
+            user_updated = self.find_user_by(id=user_id)
         except NoResultFound:
-            raise ValueError()
+            raise ValueError("User not found.")
 
-        for k, v in kwargs.items():
-            if hasattr(user, k):
-                setattr(user, k, v)
+        for attr, value in kwargs.items():
+            if hasattr(User, attr):
+                setattr(user_updated, attr, value)
             else:
-                raise ValueError()
+                raise ValueError(f"Invalid attribute: {attr}")
         self._session.commit()
+
+
+if __name__ == "__main__":
+    my_db = DB()
+
+    user = my_db.add_user("test@test.com", "PwdHashed")
+    print(user.id)
+
+    find_user = my_db.find_user_by(email="test@test.com")
+    print(find_user.id)
+
+    try:
+        find_user = my_db.find_user_by(email="test@test.com")
+        print(find_user.id)
+    except NoResultFound:
+        print("Not found")
+
+    try:
+        find_user = my_db.find_user_by(email="test@test.com")
+        print(find_user.id)
+    except InvalidRequestError:
+        print("Invalid attribute")
