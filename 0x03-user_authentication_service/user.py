@@ -26,5 +26,5 @@ class User(Base):
 if __name__ == '__main__':
     print(User.__tablename__)
 
-    for column in User.__table__.columns:
+    for column in User.__tablename_.columns:
         print("{}: {}.".format(column.name, column.type))
