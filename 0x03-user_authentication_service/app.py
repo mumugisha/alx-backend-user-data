@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" Flask app with user management and authentication
+""" Flask app with user management
 """
 from auth import Auth
 from flask import (
@@ -34,7 +34,7 @@ def users() -> str:
         user = DB_INSTANCE.add_user(email, hashed_password)
     except ValueError:
         return jsonify({"message": "email already registered"}), 400
-    return jsonify({"email": email, "message": "user created"}), 201
+    return jsonify({"email": user.email, "message": "user created"}), 201
 
 
 @app.route("/sessions", methods=["POST"], strict_slashes=False)
@@ -48,11 +48,11 @@ def login() -> str:
     except NoResultFound:
         abort(401)
 
-    if not AUTH.valid_login(email, password):
+    if not AUTH.valid_login(user.email, password):
         abort(401)
 
-    session_id = AUTH.create_session(email)
-    response = jsonify({"email": email, "message": "logged in"})
+    session_id = AUTH.create_session(user.email)
+    response = jsonify({"email": user.email, "message": "logged in"})
     response.set_cookie("session_id", session_id)
     return response
 
@@ -83,10 +83,11 @@ def get_reset_password_token() -> str:
     """Generate a token for resetting a user's password"""
     email = request.form.get("email")
     try:
-        reset_token = AUTH.get_reset_password_token(email)
+        user = DB_INSTANCE.find_user_by(email=email)
+        reset_token = AUTH.get_reset_password_token(user.email)
     except ValueError:
         abort(403)
-    return jsonify({"email": email, "reset_token": reset_token})
+    return jsonify({"email": user.email, "reset_token": reset_token})
 
 
 @app.route("/reset_password", methods=["PUT"], strict_slashes=False)
@@ -96,10 +97,11 @@ def update_password() -> str:
     reset_token = request.form.get("reset_token")
     new_password = request.form.get("new_password")
     try:
+        user = DB_INSTANCE.find_user_by(email=email)
         AUTH.update_password(reset_token, new_password)
     except ValueError:
         abort(403)
-    return jsonify({"email": email, "message": "Password updated"})
+    return jsonify({"email": user.email, "message": "Password updated"})
 
 
 if __name__ == "__main__":
