@@ -37,9 +37,9 @@ def users() -> str:
         hashed_password = AUTH.hash_password(password)
         DB_INSTANCE.add_user(email, hashed_password)
     except ValueError:
-        return "OK", 400
+        return jsonify({"email": email, "message": "user created"}), 200
 
-    return "OK", 200
+    return jsonify({"message": "email already registered"}), 400
 
 
 @app.route("/sessions", methods=["POST"], strict_slashes=False)
