@@ -2,7 +2,6 @@
 """
 DB module
 """
-from db import DB
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
@@ -12,10 +11,9 @@ from user import Base, User
 
 
 class DB:
-    """DB class"""
+    """DB class for database operations"""
 
     def __init__(self) -> None:
-        self._db = DB()
         """
         Initialize a new DB instance.
         """
@@ -67,18 +65,14 @@ class DB:
             InvalidRequestError: If any attribute is invalid.
             NoResultFound: If no user matches the query.
         """
-        all_users = self._session.query(User)
-        for key, value in kwargs.items():
-            if key not in User.__dict__:
-                raise InvalidRequestError(
-                    f"Invalid attribute: {key}"
-                )
-            for user in all_users:
-                if getattr(user, key) == value:
-                    return user
-        raise NoResultFound(
-            "No user found with the given attributes."
-        )
+        try:
+            return self._session.query(User).filter_by(**kwargs).one()
+        except NoResultFound:
+            raise NoResultFound(
+                "No user found with the given attributes."
+            )
+        except InvalidRequestError as e:
+            raise InvalidRequestError(str(e))
 
     def update_user(self, user_id: int, **kwargs) -> None:
         """
