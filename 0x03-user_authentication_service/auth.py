@@ -1,4 +1,4 @@
-#!/usr/bin/env pytho3
+#!/usr/bin/env python3
 """Authentication of API."""
 
 import bcrypt
@@ -79,18 +79,16 @@ class Auth:
         """
         try:
             user = self._db.find_user_by(email=email)
-            return bcrypt.checkpw(password.encode("utf-8"),
-                                  user.hashed_password)
         except NoResultFound:
             return False
+        pwd_hash = user.hashed_password
+        return bcrypt.checkpw(password.encode("utf-8"), pwd_hash)
 
     def create_session(self, email: str) -> Union[None, str]:
         """
         Create a session ID for an existing user.
-
         Args:
             email (str): User's email address.
-
         Returns:
             Union[None, str]: Session ID or None.
         """
@@ -107,10 +105,8 @@ class Auth:
     def get_user_from_session_id(self, session_id: str) -> Union[None, User]:
         """
         Get a user from a session ID.
-
         Args:
             session_id (str): Session ID.
-
         Returns:
             Union[None, User]: User object if exists, else None.
         """
@@ -125,10 +121,8 @@ class Auth:
     def destroy_session(self, user_id: int) -> None:
         """
         Destroy a user's session by setting session_id to None.
-
         Args:
             user_id (int): User ID.
-
         Raises:
             ValueError: If user ID is invalid.
         """
@@ -141,13 +135,10 @@ class Auth:
     def get_reset_password_token(self, email: str) -> str:
         """
         Generate a reset password token for a user.
-
         Args:
             email (str): User's email.
-
         Returns:
             str: Generated reset token.
-
         Raises:
             ValueError: If user with given email does not exist.
         """
@@ -164,11 +155,9 @@ class Auth:
     def update_password(self, reset_token: str, password: str) -> None:
         """
         Update a user's password.
-
         Args:
             reset_token (str): Reset token issued to reset a password.
             password (str): New password.
-
         Raises:
             ValueError: If reset token is invalid.
         """
@@ -182,5 +171,5 @@ class Auth:
             user.id, hashed_password=hashed, reset_token=None
         )
         logger.info(
-            f"Password updated for user with reset token: {reset_token}"
-        )
+                f"Password updated for user with reset token: {reset_token}"
+                )
