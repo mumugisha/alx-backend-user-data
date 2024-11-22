@@ -94,11 +94,11 @@ def get_reset_password_token() -> str:
 
     try:
         user = DB_INSTANCE.find_user_by(email=email)
-        reset_token = AUTH.get_reset_password_token(user.email)
+        reset_token = AUTH.get_reset_password_token(email)
     except ValueError:
         abort(403)
 
-    return jsonify({"email": f"{user.email}", "reset_token": f"{reset_token}"})
+    return jsonify({"email": f"{email}", "reset_token": f"{reset_token}"})
 
 
 @app.route("/reset_password", methods=["PUT"], strict_slashes=False)
