@@ -1,36 +1,37 @@
 #!/usr/bin/env python3
-"""
-Flask app
+""" Flask app with user management and authentication
 """
 from auth import Auth
-from flask import (Flask,
-                   abort,
-                   jsonify,
-                   request,
-                   redirect
-                   )
-
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    abort,
+    redirect,
+    url_for
+)
+from sqlalchemy.orm.exc import NoResultFound
+from db import DB
 
 app = Flask(__name__)
-
 AUTH = Auth()
+DB_INSTANCE = DB()
 
 
-@app.route("/", methods=['GET'], strict_slashes=False)
+@app.route("/", methods=["GET"], strict_slashes=False)
 def index() -> str:
-    """ Return JSON response: {"message": "Bienvenue"} """
+    """Return a JSON response: {"message": "Bienvenue"}"""
     return jsonify({"message": "Bienvenue"})
 
 
-@app.route("/users", methods=['POST'], strict_slashes=False)
+@app.route("/users", methods=["POST"], strict_slashes=False)
 def users() -> str:
-    """
-    Register new users
-    """
+    """Register a new user"""
     email = request.form.get("email")
     password = request.form.get("password")
     try:
-        AUTH.register_user(email, password)
+        hashed_password = AUTH.hash_password(password)
+        user = DB_INSTANCE.add_user(email, hashed_password)
     except ValueError:
         return jsonify({"message": "email already registered"}), 400
     return jsonify({"email": email, "message": "user created"}), 201
@@ -38,11 +39,14 @@ def users() -> str:
 
 @app.route("/sessions", methods=["POST"], strict_slashes=False)
 def login() -> str:
-    """
-    Log in a user if credentials are correct
-    """
+    """Log in a user if credentials are correct"""
     email = request.form.get("email")
     password = request.form.get("password")
+
+    try:
+        user = DB_INSTANCE.find_user_by(email=email)
+    except NoResultFound:
+        abort(401)
 
     if not AUTH.valid_login(email, password):
         abort(401)
@@ -53,24 +57,20 @@ def login() -> str:
     return response
 
 
-@app.route("/sessions", methods=['DELETE'], strict_slashes=False)
-def logout():
-    """
-    Log out a user and destroy their session
-    """
+@app.route("/sessions", methods=["DELETE"], strict_slashes=False)
+def logout() -> str:
+    """Log out a user and destroy their session"""
     session_id = request.cookies.get("session_id")
     user = AUTH.get_user_from_session_id(session_id)
     if user is None or session_id is None:
         abort(403)
     AUTH.destroy_session(user.id)
-    return redirect("/")
+    return redirect(url_for("index"))
 
 
-@app.route("/profile", methods=['GET'], strict_slashes=False)
+@app.route("/profile", methods=["GET"], strict_slashes=False)
 def profile() -> str:
-    """
-    Return user's email based on session_id
-    """
+    """Return user's email based on session_id"""
     session_id = request.cookies.get("session_id")
     user = AUTH.get_user_from_session_id(session_id)
     if user:
@@ -78,11 +78,9 @@ def profile() -> str:
     abort(403)
 
 
-@app.route("/reset_password", methods=['POST'], strict_slashes=False)
+@app.route("/reset_password", methods=["POST"], strict_slashes=False)
 def get_reset_password_token() -> str:
-    """
-    Generate a token for resetting user's password
-    """
+    """Generate a token for resetting a user's password"""
     email = request.form.get("email")
     try:
         reset_token = AUTH.get_reset_password_token(email)
@@ -91,11 +89,9 @@ def get_reset_password_token() -> str:
     return jsonify({"email": email, "reset_token": reset_token})
 
 
-@app.route("/update_password", methods=['POST'], strict_slashes=False)
+@app.route("/reset_password", methods=["PUT"], strict_slashes=False)
 def update_password() -> str:
-    """
-    Update user's password
-    """
+    """Update a user's password"""
     email = request.form.get("email")
     reset_token = request.form.get("reset_token")
     new_password = request.form.get("new_password")
@@ -103,7 +99,7 @@ def update_password() -> str:
         AUTH.update_password(reset_token, new_password)
     except ValueError:
         abort(403)
-    return jsonify({"email": email, "message": "password updated"})
+    return jsonify({"email": email, "message": "Password updated"})
 
 
 if __name__ == "__main__":
