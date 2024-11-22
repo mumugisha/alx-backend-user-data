@@ -185,4 +185,6 @@ class Auth:
         self._db.update_user(
             user.id, hashed_password=hashed, reset_token=None
         )
-        logger.info(f"Password updated for user with reset token: {reset_token}")
+        logger.info(
+                f"Password updated for user with reset token: {reset_token}"
+                )
