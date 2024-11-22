@@ -2,12 +2,12 @@
 """
 DB module
 """
+from db import DB
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import InvalidRequestError
-
 from user import Base, User
 
 
@@ -15,6 +15,7 @@ class DB:
     """DB class"""
 
     def __init__(self) -> None:
+        self._db = DB()
         """
         Initialize a new DB instance.
         """

@@ -18,10 +18,8 @@ logger = logging.getLogger("Auth")
 def _hash_password(password: str) -> bytes:
     """
     Hash a password and return bytes.
-
     Args:
         password (str): Password in string format.
-
     Returns:
         bytes: Hashed password.
     """
@@ -32,7 +30,6 @@ def _hash_password(password: str) -> bytes:
 def _generate_uuid() -> str:
     """
     Generate a UUID and return it as a string.
-
     Returns:
         str: UUID string.
     """
@@ -43,7 +40,6 @@ class Auth:
     """
     Class to manage API authentication.
     """
-
     def __init__(self) -> None:
         self._db = DB()
 
@@ -91,10 +87,8 @@ class Auth:
     def create_session(self, email: str) -> Union[None, str]:
         """
         Create a session ID for an existing user.
-
         Args:
             email (str): User's email address.
-
         Returns:
             Union[None, str]: Session ID or None.
         """
@@ -111,10 +105,8 @@ class Auth:
     def get_user_from_session_id(self, session_id: str) -> Union[None, User]:
         """
         Get a user from a session ID.
-
         Args:
             session_id (str): Session ID.
-
         Returns:
             Union[None, User]: User object if exists, else None.
         """
@@ -129,10 +121,8 @@ class Auth:
     def destroy_session(self, user_id: int) -> None:
         """
         Destroy a user's session by setting session_id to None.
-
         Args:
             user_id (int): User ID.
-
         Raises:
             ValueError: If user ID is invalid.
         """
@@ -145,13 +135,10 @@ class Auth:
     def get_reset_password_token(self, email: str) -> str:
         """
         Generate a reset password token for a user.
-
         Args:
             email (str): User's email.
-
         Returns:
             str: Generated reset token.
-
         Raises:
             ValueError: If user with given email does not exist.
         """
@@ -168,11 +155,9 @@ class Auth:
     def update_password(self, reset_token: str, password: str) -> None:
         """
         Update a user's password.
-
         Args:
             reset_token (str): Reset token issued to reset a password.
             password (str): New password.
-
         Raises:
             ValueError: If reset token is invalid.
         """
