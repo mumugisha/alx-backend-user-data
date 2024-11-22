@@ -1,98 +1,90 @@
 #!/usr/bin/env python3
+""" Flask app
 """
-Flask app
-"""
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
-from sqlalchemy.orm.exc import NoResultFound
+from auth import Auth
+from flask import Flask, abort, jsonify, request, redirect
 
-from user import Base, User
+app = Flask(__name__)
+AUTH = Auth()
 
 
-class DB:
-    """
-    DB class for handling database operations.
-    """
+@app.route("/", methods=['GET'], strict_slashes=False)
+def index() -> str:
+    """ Return JSON response: {"message": "Bienvenue"} """
+    return jsonify({"message": "Bienvenue"})
 
-    def __init__(self) -> None:
-        """Initialize the database connection and create tables."""
-        self._engine = create_engine("sqlite:///a.db", echo=False)
-        Base.metadata.drop_all(self._engine)
-        Base.metadata.create_all(self._engine)
-        self.__session = None
 
-    @property
-    def _session(self) -> Session:
-        """Lazy-load the session object for interacting with the database."""
-        if self.__session is None:
-            DBSession = sessionmaker(bind=self._engine)
-            self.__session = DBSession()
-        return self.__session
+@app.route("/users", methods=['POST'], strict_slashes=False)
+def users() -> str:
+    """ Register new users """
+    email = request.form.get("email")
+    password = request.form.get("password")
+    try:
+        user = AUTH.register_user(email, password)
+    except ValueError:
+        return jsonify({"message": "email already registered"}), 400
+    return jsonify({"email": email, "message": "user created"}), 201
 
-    def add_user(self, email: str, hashed_password: str) -> User:
-        """
-        Adds a new user to the database.
 
-        Args:
-            email (str): The email address of the user.
-            hashed_password (str): The hashed password of the user.
+@app.route("/sessions", methods=["POST"], strict_slashes=False)
+def login() -> str:
+    """ Log in a user if credentials are correct """
+    email = request.form.get("email")
+    password = request.form.get("password")
 
-        Returns:
-            User: The user object that was added to the database.
-        """
-        user = User(email=email, hashed_password=hashed_password)
-        self._session.add(user)
-        self._session.commit()
-        return user
+    if not AUTH.valid_login(email, password):
+        abort(401)
 
-    def find_user_by(self, **kwargs) -> User:
-        """
-        Finds a user by arbitrary keyword arguments.
+    session_id = AUTH.create_session(email)
+    response = jsonify({"email": email, "message": "logged in"})
+    response.set_cookie("session_id", session_id)
+    return response
 
-        Args:
-            kwargs: Arbitrary keyword arguments to filter users.
 
-        Returns:
-            User: The user found in the database.
+@app.route("/sessions", methods=['DELETE'], strict_slashes=False)
+def logout():
+    """ Log out a user and destroy their session """
+    session_id = request.cookies.get("session_id")
+    user = AUTH.get_user_from_session_id(session_id)
+    if user is None or session_id is None:
+        abort(403)
+    AUTH.destroy_session(user.id)
+    return redirect("/")
 
-        Raises:
-            NoResultFound: If no user matches the query.
-            ValueError: If an invalid attribute is provided.
-        """
-        all_users = self._session.query(User)
-        for key, value in kwargs.items():
-            if not hasattr(User, key):
-                raise ValueError(f"user not founde: {key}")
-            all_users = all_users.filter(getattr(User, key) == value)
 
-        try:
-            return all_users.first()
-        except NoResultFound:
-            raise NoResultFound(f"No user found matching {kwargs}")
+@app.route("/profile", methods=['GET'], strict_slashes=False)
+def profile() -> str:
+    """ Return user's email based on session_id """
+    session_id = request.cookies.get("session_id")
+    user = AUTH.get_user_from_session_id(session_id)
+    if user:
+        return jsonify({"email": user.email}), 200
+    abort(403)
 
-    def update_user(self, user_id: int, **kwargs) -> None:
-        """
-        Update User details.
-        Args:
-            user_id (int): The ID of the user to update.
-            kwargs: Arbitrary keyword arguments to update the user attributes.
-        Raises:
-            ValueError: If no user with the given ID is found, or if
-                        an invalid attribute is provided.
-        """
-        user = self.find_user_by(id=user_id)
-        if user is None:
-            raise ValueError(f"User with ID {user_id} not found")
 
-        for key, value in kwargs.keys():
-            if hasattr(user, key):
-                setattr(user, key, value)
-            else:
-                raise ValueError(f"Invalid attribute: {key}")
-        self._session.commit()
+@app.route("/reset_password", methods=['POST'], strict_slashes=False)
+def get_reset_password_token() -> str:
+    """ Generate a token for resetting user's password """
+    email = request.form.get("email")
+    try:
+        reset_token = AUTH.get_reset_password_token(email)
+    except ValueError:
+        abort(403)
+    return jsonify({"email": email, "reset_token": reset_token})
 
-    def close(self):
-        """Close the database session."""
-        if self.__session:
-            self.__session.close()
+
+@app.route("/update_password", methods=['POST'], strict_slashes=False)
+def update_password() -> str:
+    """ Update user's password """
+    email = request.form.get("email")
+    reset_token = request.form.get("reset_token")
+    new_password = request.form.get("new_password")
+    try:
+        AUTH.update_password(reset_token, new_password)
+    except ValueError:
+        abort(403)
+    return jsonify({"email": email, "message": "password updated"})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
