@@ -14,6 +14,7 @@ from user import User
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Auth")
 
+
 def _hash_password(password: str) -> bytes:
     """
     Hash a password and return bytes.
@@ -42,6 +43,7 @@ class Auth:
     """
     Class to manage API authentication.
     """
+
     def __init__(self) -> None:
         self._db = DB()
 
