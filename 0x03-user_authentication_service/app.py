@@ -29,12 +29,17 @@ def users() -> str:
     """Register a new user"""
     email = request.form.get("email")
     password = request.form.get("password")
+
+    if not email or not password:
+        return "Missing email or password", 400
+
     try:
         hashed_password = AUTH.hash_password(password)
-        user = DB_INSTANCE.add_user(email, hashed_password)
+        DB_INSTANCE.add_user(email, hashed_password)
     except ValueError:
-        return jsonify({"message": "email already registered"}), 400
-    return jsonify({"email": user.email, "message": "user created"}), 201
+        return "OK", 400
+
+    return "OK", 200
 
 
 @app.route("/sessions", methods=["POST"], strict_slashes=False)
@@ -62,8 +67,10 @@ def logout() -> str:
     """Log out a user and destroy their session"""
     session_id = request.cookies.get("session_id")
     user = AUTH.get_user_from_session_id(session_id)
+
     if user is None or session_id is None:
         abort(403)
+
     AUTH.destroy_session(user.id)
     return redirect(url_for("index"))
 
@@ -73,8 +80,10 @@ def profile() -> str:
     """Return user's email based on session_id"""
     session_id = request.cookies.get("session_id")
     user = AUTH.get_user_from_session_id(session_id)
+
     if user:
         return jsonify({"email": user.email}), 200
+
     abort(403)
 
 
@@ -82,11 +91,13 @@ def profile() -> str:
 def get_reset_password_token() -> str:
     """Generate a token for resetting a user's password"""
     email = request.form.get("email")
+
     try:
         user = DB_INSTANCE.find_user_by(email=email)
         reset_token = AUTH.get_reset_password_token(user.email)
     except ValueError:
         abort(403)
+
     return jsonify({"email": user.email, "reset_token": reset_token})
 
 
@@ -96,11 +107,13 @@ def update_password() -> str:
     email = request.form.get("email")
     reset_token = request.form.get("reset_token")
     new_password = request.form.get("new_password")
+
     try:
         user = DB_INSTANCE.find_user_by(email=email)
         AUTH.update_password(reset_token, new_password)
     except ValueError:
         abort(403)
+
     return jsonify({"email": user.email, "message": "Password updated"})
 
 
